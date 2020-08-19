@@ -16,17 +16,17 @@ export class CreateOrder {
     const builder = new Builder()
 
     /* eslint-disable */
-		const transaction = builder
-		.step()
-			.invoke(this.createOrder.bind(this))
-			.withCompensation(this.createOrderCompensation.bind(this))
-		.step()
-			.invoke(this.reserveCredit.bind(this))
-			.onReply(CustomerNotFound, this.handleCustomerNotFound.bind(this))
-			.onReply(CustomerCreditLimitExceeded, this.handleCustomerCreditLimitExceeded.bind(this))
-		.step()
-			.invoke(this.approveOrder.bind(this))
-		.get()
+    const transaction = builder
+    .step()
+      .invoke(this.createOrder.bind(this))
+      .withCompensation(this.createOrderCompensation.bind(this))
+    .step()
+      .invoke(this.reserveCredit.bind(this))
+      .onReply(CustomerNotFound, this.handleCustomerNotFound.bind(this))
+      .onReply(CustomerCreditLimitExceeded, this.handleCustomerCreditLimitExceeded.bind(this))
+    .step()
+      .invoke(this.approveOrder.bind(this))
+    .get()
     /* eslint-enable */
 
     await exec({
