@@ -1,51 +1,39 @@
-# npm-typescript-library-jest-template
+# ts-tram-saga
+Write tram style code in TypeScript. Define clear steps to fulfill a conditional and asynchronous transaction.
+Inspired by https://github.com/eventuate-tram/eventuate-tram-sagas
 
-### This repo is designed to help get you started with pubishing an npm typscript library, as well as setup the configs to enable Jest testing.
+## Usage
+```ts
+import { Builder } from '../../src/builder'
+import { exec } from '../../src/runner'
+```
 
-## Setup
+## Define a Saga
+Create Order Example
+see https://github.com/guAnsunyata/ts-tram-saga/tree/master/example
 
-You should first replace all of the variables within the package.json. 
-### [LIB_NAME] _the name of your library_
-### [YOUR_NAME] _your name_
-### [DESCRIPTION] _the description of your library_
-### [REPO_URL] _the link to your github repo if you have one_
-  Example: [https://github.com/amitch6097/npm-typescript-library-jest-template.git](https://github.com/amitch6097/npm-typescript-library-jest-template.git)
-### [ISSUES_URL] _the link to your issues_ 
-  Example: [https://github.com/amitch6097/npm-typescript-library-jest-template/issues](https://github.com/amitch6097/npm-typescript-library-jest-template/issues)
-### [READ_ME_URL] _the link to your repos readme.md or docs_
-  Example: [https://github.com/amitch6097/npm-typescript-library-jest-template#readme](https://github.com/amitch6097/npm-typescript-library-jest-template#readme)
-  
+Example Spec:
+- Create order with idle state.
+- If the transaction failed, run a compensation to reject the order.
+- Request to Reserve Credit through a Promise
+  - If it return `CustomerNotFound` or `CustomerCreditLimitExceeded` result, run corresponded handler and fail this transaction
+  - If it resolve without Promise rejection. Approve the order.
 
-  ### Finally run 
-  ```
-  npm install
-  ```
-  to install all dependencies.
-  
-  ## Adding Code
-  
-  You will want to add files to the [./src](https://github.com/amitch6097/npm-typescript-library-jest-template/tree/master/src) folder.  Export all of the functions and Classes you want avalible to your library users from the [./src/index.ts](https://github.com/amitch6097/npm-typescript-library-jest-template/tree/master/src/index.ts) file.
-  ### To build your package run
-  ```
-  npm run build
-  ````
-  This will build a common js version of your library and a UMD version.
-  
-  ## Testing 
-  
-  Add tests to [./__tests__](https://github.com/amitch6097/npm-typescript-library-jest-template/tree/master/__tests__) folder.  The testing platform is Jest.  You can find out more about Jest [here](https://jestjs.io/)!
-  ### To build your package run
-  ```
-  npm run test
-  ````
-  
-  ## Publishing to NPM
-  
-  Before publishing you should update the version in the package.json.  Following that you can run 
-  ```
-  npm publish
-  ```
-  to publish your package to npm.
-  
+```ts
+const transaction = new Builder()
+.step()
+  .invoke(this.createOrder.bind(this))
+  .withCompensation(this.createOrderCompensation.bind(this))
+.step()
+  .invoke(this.reserveCredit.bind(this))
+  .onReply(CustomerNotFound, this.handleCustomerNotFound.bind(this))
+  .onReply(CustomerCreditLimitExceeded, this.handleCustomerCreditLimitExceeded.bind(this))
+.step()
+  .invoke(this.approveOrder.bind(this))
+.get()
 
-  
+// execute the saga defined above
+await exec({
+  steps: transaction,
+})
+```
