@@ -9,8 +9,9 @@ import { exec } from '../../src/runner'
 ```
 
 ## Define a Saga
-Create Order Example
-see https://github.com/guAnsunyata/ts-tram-saga/tree/master/example
+Create Order Example. see https://github.com/guAnsunyata/ts-tram-saga/tree/master/example
+
+You can run the example test by `npm run test:watch`
 
 Example Spec:
 - Create order with idle state.
@@ -21,16 +22,16 @@ Example Spec:
 
 ```ts
 const transaction = new Builder()
-.step()
-  .invoke(this.createOrder.bind(this))
-  .withCompensation(this.createOrderCompensation.bind(this))
-.step()
-  .invoke(this.reserveCredit.bind(this))
-  .onReply(CustomerNotFound, this.handleCustomerNotFound.bind(this))
-  .onReply(CustomerCreditLimitExceeded, this.handleCustomerCreditLimitExceeded.bind(this))
-.step()
-  .invoke(this.approveOrder.bind(this))
-.get()
+  .step()
+    .invoke(this.createOrder)
+    .withCompensation(this.createOrderCompensation)
+  .step()
+    .invoke(this.reserveCredit)
+    .onReply(CustomerNotFound, this.handleCustomerNotFound)
+    .onReply(CustomerCreditLimitExceeded, this.handleCustomerCreditLimitExceeded)
+  .step()
+    .invoke(this.approveOrder)
+  .get()
 
 // execute the saga defined above
 await exec({
